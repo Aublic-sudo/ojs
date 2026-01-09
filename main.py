@@ -1,3 +1,4 @@
+import os
 import requests, time, webbrowser
 from bs4 import BeautifulSoup
 from plyer import notification
@@ -5,8 +6,12 @@ from telegram import Bot
 
 URL = "https://ojas.gujarat.gov.in/Preference.aspx?opt=LUbWdmhKlwjaHr%2fCUNi26A%3d%3d"
 
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
-CHAT_ID   = "PASTE_YOUR_TELEGRAM_ID_HERE"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID   = os.getenv("CHAT_ID")
+
+if not BOT_TOKEN or not CHAT_ID:
+    print("❌ BOT_TOKEN or CHAT_ID missing in environment variables")
+    exit()
 
 bot = Bot(BOT_TOKEN)
 found = False
@@ -29,6 +34,8 @@ IGNORE_WORDS = [
     "Enter Captcha",
     "Please enter"
 ]
+
+print("🔍 OJAS Call Letter watcher started...")
 
 while True:
     try:
@@ -58,5 +65,7 @@ while True:
             webbrowser.open(URL)
 
         time.sleep(120)
-    except:
+
+    except Exception as e:
+        print("Error:", e)
         time.sleep(120)
