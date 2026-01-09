@@ -1,17 +1,16 @@
-import os, time, requests
+import os, time, threading, requests
+from flask import Flask
 
 URL = "https://ojas.gujarat.gov.in/Preference.aspx?opt=LUbWdmhKlwjaHr%2fCUNi26A%3d%3d"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID   = os.getenv("CHAT_ID")
 
-if not BOT_TOKEN or not CHAT_ID:
-    print("BOT_TOKEN or CHAT_ID missing")
-    exit()
+app = Flask(__name__)
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36"
-}
+@app.route("/")
+def home():
+    return "OJAS Watcher Running..."
 
 DETECT_PATTERNS = [
     "f_popup(",
@@ -19,42 +18,29 @@ DETECT_PATTERNS = [
     "window.open("
 ]
 
-IGNORE_PATTERNS = [
-    "incorrect captcha",
-    "application not found",
-    "invalid application"
-]
+def watcher():
+    found = False
+    print("🚀 OJAS Call Letter Watcher Started...")
+    while True:
+        try:
+            r = requests.get(URL, timeout=20)
+            html = r.text.lower()
 
-found = False
-last_ping = 0
+            if any(p in html for p in DETECT_PATTERNS) and not found:
+                found = True
+                requests.get(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    params={"chat_id": CHAT_ID,
+                            "text": "🚨 OJAS CALL LETTER LIVE!\nOpen OJAS site now & fill captcha."}
+                )
+                print("✅ Alert sent to Telegram")
 
-print("🚀 OJAS Call Letter Watcher Running...")
-
-while True:
-    try:
-        r = requests.get(URL, headers=HEADERS, timeout=20)
-        html = r.text.lower()
-
-        # Heartbeat every 10 minutes
-        if time.time() - last_ping > 600:
-            print("⏱ Still watching OJAS...")
-            last_ping = time.time()
-
-        if any(x in html for x in IGNORE_PATTERNS):
             time.sleep(60)
-            continue
+        except Exception as e:
+            print("Error:", e)
+            time.sleep(60)
 
-        if any(p in html for p in DETECT_PATTERNS) and not found:
-            found = True
-            msg = "🚨 OJAS CALL LETTER LIVE!\nOpen OJAS site now & fill captcha immediately."
-            requests.get(
-                f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                params={"chat_id": CHAT_ID, "text": msg}
-            )
-            print("✅ Call Letter detected & Telegram alert sent.")
-
-        time.sleep(60)
-
-    except Exception as e:
-        print("❌ Error:", e)
-        time.sleep(60)
+if __name__ == "__main__":
+    threading.Thread(target=watcher, daemon=True).start()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
