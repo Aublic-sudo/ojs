@@ -22,7 +22,10 @@ KEYWORDS = [
     "View Call Letter", "Generate Call Letter",
     "btnPrint", "btnDownload", "Application",
     "ctl00$ContentPlaceHolder1$BtnPrint",
-    "ctl00$ContentPlaceHolder1$BtnDownload"
+    "ctl00$ContentPlaceHolder1$BtnDownload",
+    "f_popup(",
+    "printcallletter.aspx",
+    "window.open("
 ]
 
 IGNORE_WORDS = [
