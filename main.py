@@ -20,7 +20,7 @@ KEYWORDS = [
     "Call Letter", "Download", "Hall Ticket", "Print",
     "Admit Card", "Print Call Letter", "Download Call Letter",
     "View Call Letter", "Generate Call Letter",
-    "btnPrint", "btnDownload",
+    "btnPrint", "btnDownload", "Application",
     "ctl00$ContentPlaceHolder1$BtnPrint",
     "ctl00$ContentPlaceHolder1$BtnDownload"
 ]
