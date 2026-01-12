@@ -18,24 +18,41 @@ DETECT_PATTERNS = [
     "window.open("
 ]
 
+def send_msg(text):
+    try:
+        requests.get(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            params={"chat_id": CHAT_ID, "text": text},
+            timeout=10
+        )
+    except:
+        pass
+
 def watcher():
     found = False
+    last_heartbeat = 0
+
     print("🚀 OJAS Call Letter Watcher Started...")
+    send_msg("🟢 OJAS Watcher Started...\nBot is Live & Monitoring.")
+
     while True:
         try:
             r = requests.get(URL, timeout=20)
             html = r.text.lower()
 
+            # 🚨 Call Letter detect
             if any(p in html for p in DETECT_PATTERNS) and not found:
                 found = True
-                requests.get(
-                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                    params={"chat_id": CHAT_ID,
-                            "text": "🚨 OJAS CALL LETTER LIVE!\nOpen OJAS site now & fill captcha."}
-                )
+                send_msg("🚨 OJAS CALL LETTER LIVE!\nOpen OJAS site now & fill captcha.")
                 print("✅ Alert sent to Telegram")
 
+            # 💓 Heartbeat every 5 min
+            if time.time() - last_heartbeat >= 300:
+                send_msg("🔍 OJAS Watcher Checking...\nBot is alive.")
+                last_heartbeat = time.time()
+
             time.sleep(60)
+
         except Exception as e:
             print("Error:", e)
             time.sleep(60)
